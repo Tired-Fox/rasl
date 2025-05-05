@@ -1,0 +1,15 @@
+[package]
+name = "rasl"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+lazy_static = "1.5.0"
+mlua = { version = "0.10.4", features = ["lua54", "vendored", "macros"] }
+rhai = { version = "1.21.0", features = ["metadata"] }
+pyo3 = { version = "0.24.2", features=["auto-initialize"] }
+
+# These two need special compilation to work
+# wrapped_mono = "0.4.0"
+# janetrs = { version = "0.8.0", default-features = false, features = ["std", "unicode"]  }
+
