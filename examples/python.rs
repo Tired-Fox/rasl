@@ -5,6 +5,7 @@ use pyo3::types::IntoPyDict;
 use pyo3::ffi::c_str;
 
 fn main() -> PyResult<()> {
+    pyo3::prepare_freethreaded_python();
     Python::with_gil(|py| {
         let sys = py.import("sys")?;
         let version: String = sys.getattr("version")?.extract()?;
