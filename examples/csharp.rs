@@ -1,12 +1,13 @@
 use std::process::Command;
 
-use wrapped_mono::{add_internal_call, invokable, jit, metadata::MethodTable, Array, Class, Dim1D, DimensionTrait, Exception, Image, InteropReceive, Method, Object};
+use wrapped_mono::{add_internal_call, invokable, jit, metadata::MethodTable, Array, Class, Dim1D, Exception, InteropReceive, Method, Object};
 
 fn main() {
+    let current = std::env::current_dir().expect("could not get current working directory");
     let output = Command::new("mcs.bat")
-        .arg("-out:C:/Users/zboehm/projects/rust/rasl/examples/sample.dll")
         .arg("-target:library")
-        .arg("C:/Users/zboehm/projects/rust/rasl/examples/sample.cs")
+        .arg(format!("-out:{}", current.join("examples").join("sample.dll").display()))
+        .arg(current.join("examples").join("sample.cs"))
         .output()
         .expect("failed to compile assembly");
 
@@ -20,7 +21,7 @@ fn main() {
     let domain = jit::init("sample_domain", None);
     let asm = domain.assembly_open("examples/sample.dll").expect("failed to load assembly");
     let image = asm.get_image();
-    let class = Class::from_name(&image, "Example", "Sample").expect("could not find class Example::Sample");
+    let class = Class::from_name(&image, "", "Sample").expect("could not find class Sample");
     let instance = Object::new(&domain, &class);
 
     let metadata = MethodTable::from_image(image).expect("could not find metadata for image");
@@ -36,7 +37,7 @@ fn main() {
     // Get a method "Count" form SomeClass with 0 parameters returning a number
     let met: Method<()> = Method::get_from_name(&class, "Count", 0).expect("Could not find method \"Count\"!");
     // Call "Count" method on an istance
-    let res_obj = met.invoke(Some(instance.clone()), ()).expect("Got an exception while calling Example::Sample::Count").expect("Got null from Count");
+    let res_obj = met.invoke(Some(instance.clone()), ()).expect("Got an exception while calling Sample::Count").expect("Got null from Count");
     // Unbox the result to get a raw integer from a boxed integer
     let res = res_obj.unbox::<i32>();
     println!("[COUNT] {res}");
@@ -51,7 +52,7 @@ fn main() {
         input.sqrt()
     }
     // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" attribute with a rust function
-    add_internal_call!("Example.Sample::Sqrt", sqrt);
+    add_internal_call!("Sample::Sqrt", sqrt);
 
     // This supports all types with `InteropReceive` trait
     #[invokable]
@@ -63,23 +64,23 @@ fn main() {
         }
         avg
     }
+
     // Replace a method with "[MethodImplAttribute(MethodImplOptions.InternalCall)]" attribute with a rust function
-    add_internal_call!("Example.Sample::Avg", avg);
+    add_internal_call!("Sample::Avg", avg);
 
-    let mut values = Array::<Dim1D, f32>::new(&domain, &[5]);
-    values.set([0], 100.0);
-    values.set([1], 200.0);
-    values.set([2], 20.0);
-    values.set([3], 15.0);
-    values.set([4], 22.0);
-
+    let values = Array::from([100.0, 200.0, 20.0, 15.0, 22.0].as_slice());
     let met: Method<(Array<Dim1D, f32>,)> = Method::get_from_name(&class, "Avg", 1).expect("Could not find method \"Avg\"!");
-    let res_obj = met.invoke(Some(instance.clone()), (values,)).expect("Got an exception while calling Example::Sample::Avg").expect("Got null from Avg");
+    let res_obj = met.invoke(
+        Some(instance.clone()),
+        (values,)
+    )
+        .expect("Got an exception while calling Sample::Avg").expect("Got null from Avg");
+
     let res = res_obj.unbox::<f32>();
     println!("[AVG([100, 200, 20, 15, 22])] {res}");
 
     let met: Method<(f32,)> = Method::get_from_name(&class, "Sqrt", 1).expect("Could not find method \"Avg\"!");
-    let res_obj = met.invoke(Some(instance.clone()), (res,)).expect("Got an exception while calling Example::Sample::Sqrt").expect("Got null from Avg");
+    let res_obj = met.invoke(Some(instance.clone()), (res,)).expect("Got an exception while calling Sample::Sqrt").expect("Got null from Avg");
     let sres = res_obj.unbox::<f32>();
     println!("[Sqrt({res})] {sres}");
 }

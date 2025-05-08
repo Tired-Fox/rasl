@@ -1,9 +1,13 @@
 # Rust Agnostic Scripting API (RASA)
+
 ## Embeddable Languages
 
-- `Janet`:  https://janet-lang.org/docs/index.html
-    - **Crate**: https://github.com/GrayJack/janetrs
-- `Python`: https://pyo3.rs/v0.24.2/
 - `C#`:     https://github.com/FractalFir/wrapped_mono/tree/main
-- `Rhai`:   https://rhai.rs/
+- `Python`: https://pyo3.rs/v0.24.2/
 - `Lua`:    https://docs.rs/mlua/latest/mlua/
+- `Rhai`:   https://rhai.rs/
+
+## References
+
+- https://www.mono-project.com/docs/advanced/embedding/scripting/
+- https://kahwei.dev/tag/scripting/
